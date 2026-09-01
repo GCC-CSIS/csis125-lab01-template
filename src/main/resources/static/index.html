@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Truth tables — CSIS 125 Lab 1</title>
+<style>
+  :root {
+    --paper: #e7ebee;
+    --surface: #ffffff;
+    --ink: #152029;
+    --muted: #5d6e7b;
+    --rule: #c4cfd7;
+    --rule-strong: #8fa0ad;
+    --true: #1b44a0;
+    --false: #98a5af;
+    --warn: #8c2f39;
+    --serif: "Charter", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --mono: "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 3rem 1.5rem 6rem;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  .column { max-width: 46rem; margin: 0 auto; }
+
+  h1 {
+    font-family: var(--serif);
+    font-size: 2.1rem;
+    font-weight: 600;
+    line-height: 1.15;
+    margin: 0 0 .4rem;
+    letter-spacing: -0.01em;
+  }
+
+  .lede {
+    max-width: 40rem;
+    margin: 0 0 2.5rem;
+    color: var(--muted);
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 3.5rem 0 1rem;
+  }
+
+  label {
+    display: block;
+    font-size: .875rem;
+    color: var(--muted);
+    margin-bottom: .35rem;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: .7rem .85rem;
+    font-family: var(--mono);
+    font-size: 1rem;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-radius: 3px;
+  }
+
+  input[type="text"]:focus-visible {
+    outline: 2px solid var(--true);
+    outline-offset: 1px;
+    border-color: var(--true);
+  }
+
+  button {
+    margin-top: .75rem;
+    padding: .6rem 1.4rem;
+    font-family: var(--sans);
+    font-size: .95rem;
+    color: var(--surface);
+    background: var(--ink);
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  button:hover { background: var(--true); }
+  button:focus-visible { outline: 2px solid var(--true); outline-offset: 2px; }
+
+  .examples {
+    margin: .9rem 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+  }
+
+  .examples button {
+    margin: 0;
+    padding: .3rem .6rem;
+    font-family: var(--mono);
+    font-size: .8rem;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--rule);
+  }
+
+  .examples button:hover { color: var(--true); border-color: var(--true); background: transparent; }
+
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 34rem) { .pair { grid-template-columns: 1fr; } }
+
+  .verdict {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    margin: 2rem 0 1rem;
+  }
+
+  .verdict .formula { font-style: italic; }
+
+  .note { font-family: var(--sans); font-size: .9rem; color: var(--muted); margin-top: .3rem; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    font-family: var(--mono);
+    font-size: .95rem;
+  }
+
+  th, td {
+    padding: .45rem .8rem;
+    text-align: center;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  thead th {
+    font-weight: 600;
+    color: var(--muted);
+    border-bottom: 2px solid var(--rule-strong);
+  }
+
+  /* The result column is the answer; separate it from the inputs. */
+  .result-col { border-left: 2px solid var(--rule-strong); }
+
+  tbody tr:last-child td { border-bottom: none; }
+
+  .t { color: var(--true); font-weight: 600; }
+  .f { color: var(--false); }
+
+  .error {
+    padding: .9rem 1.1rem;
+    margin-top: 1.5rem;
+    background: var(--surface);
+    border-left: 3px solid var(--warn);
+    color: var(--warn);
+    font-size: .95rem;
+  }
+
+  .syntax {
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+    font-size: .875rem;
+    color: var(--muted);
+  }
+
+  .syntax table { background: transparent; font-size: .875rem; }
+  .syntax td { text-align: left; padding: .3rem .8rem .3rem 0; border-bottom: none; }
+  .syntax td:first-child { font-family: var(--serif); font-size: 1.05rem; color: var(--ink); width: 3rem; }
+</style>
+</head>
+<body>
+<div class="column">
+
+  <h1>Truth tables</h1>
+  <p class="lede">
+    Type a formula and see every case at once. This page is the front end for the code
+    you are writing in <code>Operators.java</code> and <code>LogicAnalyzer.java</code> —
+    if a column looks wrong, the bug is in your Java, not here.
+  </p>
+
+  <label for="formula">Formula</label>
+  <input type="text" id="formula" value="p -> q" spellcheck="false" autocomplete="off">
+  <ul class="examples">
+    <li><button type="button" data-fill="p -> q">p -&gt; q</button></li>
+    <li><button type="button" data-fill="p | ~p">p | ~p</button></li>
+    <li><button type="button" data-fill="p &amp; ~p">p &amp; ~p</button></li>
+    <li><button type="button" data-fill="~(p &amp; q)">~(p &amp; q)</button></li>
+    <li><button type="button" data-fill="(p &amp; (p -> q)) -> q">modus ponens</button></li>
+    <li><button type="button" data-fill="p &amp; (q | r)">three variables</button></li>
+  </ul>
+  <button type="button" id="build">Build the table</button>
+
+  <div id="output"></div>
+
+  <h2>Are two formulas equivalent?</h2>
+  <div class="pair">
+    <div>
+      <label for="left">First formula</label>
+      <input type="text" id="left" value="~(p &amp; q)" spellcheck="false" autocomplete="off">
+    </div>
+    <div>
+      <label for="right">Second formula</label>
+      <input type="text" id="right" value="~p | ~q" spellcheck="false" autocomplete="off">
+    </div>
+  </div>
+  <button type="button" id="compare">Compare them</button>
+
+  <div id="comparison"></div>
+
+  <div class="syntax">
+    <p>You can type operators three ways — symbols, ASCII, or words.</p>
+    <table>
+      <tr><td>¬</td><td><code>~</code> <code>!</code> <code>not</code> — negation</td></tr>
+      <tr><td>∧</td><td><code>&amp;</code> <code>&amp;&amp;</code> <code>and</code> — conjunction</td></tr>
+      <tr><td>∨</td><td><code>|</code> <code>||</code> <code>or</code> — disjunction</td></tr>
+      <tr><td>⊕</td><td><code>^</code> <code>xor</code> — exclusive or</td></tr>
+      <tr><td>→</td><td><code>-&gt;</code> <code>=&gt;</code> <code>implies</code> — implication</td></tr>
+      <tr><td>↔</td><td><code>&lt;-&gt;</code> <code>&lt;=&gt;</code> <code>iff</code> — biconditional</td></tr>
+    </table>
+    <p>
+      Binding order, loosest to tightest: ↔, →, ⊕, ∨, ∧, ¬. Implication groups to the right,
+      so <code>p -&gt; q -&gt; r</code> means <code>p -&gt; (q -&gt; r)</code>. Use parentheses when in doubt.
+    </p>
+  </div>
+
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const cell = (value) => value
+    ? '<span class="t">T</span>'
+    : '<span class="f">F</span>';
+
+  function showError(target, message) {
+    target.innerHTML = '<div class="error">' + escapeHtml(message) + '</div>';
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  async function call(url) {
+    const response = await fetch(url);
+    const body = await response.json();
+    if (!response.ok) {
+      throw new Error(body.error || 'Request failed with status ' + response.status);
+    }
+    return body;
+  }
+
+  async function buildTable() {
+    const output = $('output');
+    const formula = $('formula').value;
+    try {
+      const table = await call('/api/logic/truth-table?formula=' + encodeURIComponent(formula));
+
+      const heading = table.variables.map((v) => '<th>' + escapeHtml(v) + '</th>').join('')
+        + '<th class="result-col">' + escapeHtml(table.formula) + '</th>';
+
+      const body = table.rows.map((row) =>
+        '<tr>' + row.values.map((v) => '<td>' + cell(v) + '</td>').join('')
+        + '<td class="result-col">' + cell(row.result) + '</td></tr>'
+      ).join('');
+
+      output.innerHTML =
+        '<p class="verdict"><span class="formula">' + escapeHtml(table.formula) + '</span> is a '
+        + escapeHtml(table.classification) + '.'
+        + '<span class="note">' + describe(table.classification) + '</span></p>'
+        + '<table><thead><tr>' + heading + '</tr></thead><tbody>' + body + '</tbody></table>';
+    } catch (error) {
+      showError(output, error.message);
+    }
+  }
+
+  function describe(classification) {
+    if (classification === 'tautology') return 'True in every row, whatever the variables are.';
+    if (classification === 'contradiction') return 'False in every row. No assignment satisfies it.';
+    return 'True in some rows and false in others, so it depends on the variables.';
+  }
+
+  async function compare() {
+    const output = $('comparison');
+    try {
+      const result = await call('/api/logic/equivalent'
+        + '?left=' + encodeURIComponent($('left').value)
+        + '&right=' + encodeURIComponent($('right').value));
+
+      if (result.equivalent) {
+        output.innerHTML = '<p class="verdict"><span class="formula">'
+          + escapeHtml(result.left) + '</span> and <span class="formula">'
+          + escapeHtml(result.right) + '</span> are equivalent.'
+          + '<span class="note">They agree on every row of the truth table.</span></p>';
+        return;
+      }
+
+      const rows = result.counterexamples.map((assignment) =>
+        '<tr>' + Object.entries(assignment).map(([name, value]) =>
+          '<td>' + escapeHtml(name) + ' = ' + cell(value) + '</td>').join('') + '</tr>'
+      ).join('');
+
+      output.innerHTML = '<p class="verdict"><span class="formula">'
+        + escapeHtml(result.left) + '</span> and <span class="formula">'
+        + escapeHtml(result.right) + '</span> are not equivalent.'
+        + '<span class="note">They disagree on the following '
+        + (result.counterexamples.length === 1 ? 'assignment' : result.counterexamples.length + ' assignments')
+        + '.</span></p><table><tbody>' + rows + '</tbody></table>';
+    } catch (error) {
+      showError(output, error.message);
+    }
+  }
+
+  $('build').addEventListener('click', buildTable);
+  $('compare').addEventListener('click', compare);
+  $('formula').addEventListener('keydown', (e) => { if (e.key === 'Enter') buildTable(); });
+  $('left').addEventListener('keydown', (e) => { if (e.key === 'Enter') compare(); });
+  $('right').addEventListener('keydown', (e) => { if (e.key === 'Enter') compare(); });
+
+  document.querySelectorAll('[data-fill]').forEach((button) => {
+    button.addEventListener('click', () => {
+      $('formula').value = button.dataset.fill;
+      buildTable();
+    });
+  });
+
+  buildTable();
+</script>
+</body>
+</html>
